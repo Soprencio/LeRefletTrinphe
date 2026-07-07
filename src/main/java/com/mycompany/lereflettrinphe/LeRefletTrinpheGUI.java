@@ -36,6 +36,8 @@ public class LeRefletTrinpheGUI extends JFrame {
 
     private JButton[] mesaButtons = new JButton[20];
     private int mesaSeleccionada = -1;
+    private final int[] mesasOcupadas = {2, 5, 8, 13, 19};
+    private final Color COLOR_SELECCION = new Color(255, 200, 0);
 
     private final Platillo milanesa = new Platillo("Milanesa", 7000.0, "Mila de Ternera", "Plato Principal");
     private final Platillo spaghetti = new Platillo("Spaghetti", 6300.0, "Spaghetti Bolognesa", "Plato Principal");
@@ -558,34 +560,111 @@ public class LeRefletTrinpheGUI extends JFrame {
 
     private JPanel crearPanelSeleccionMesa() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JLabel titulo = new JLabel("Selecciona una mesa");
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 20f));
+        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 22f));
         titulo.setHorizontalAlignment(SwingConstants.CENTER);
         panel.add(titulo, BorderLayout.NORTH);
 
-        JPanel mesasPanel = new JPanel(new GridLayout(5, 4, 12, 12));
-        mesasPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel floorPanel = new JPanel(new GridBagLayout());
+        floorPanel.setBackground(new Color(230, 210, 180));
+        floorPanel.setBorder(BorderFactory.createLineBorder(new Color(180, 150, 110), 3));
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(4, 4, 4, 4);
+
+        JLabel cocina = new JLabel("COCINA", SwingConstants.CENTER);
+        cocina.setOpaque(true);
+        cocina.setBackground(new Color(180, 180, 180));
+        cocina.setFont(new Font("SansSerif", Font.BOLD, 12));
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 3; gbc.gridheight = 2;
+        gbc.weightx = 0; gbc.weighty = 0;
+        floorPanel.add(cocina, gbc);
+
+        JLabel bano = new JLabel("BAÑO", SwingConstants.CENTER);
+        bano.setOpaque(true);
+        bano.setBackground(new Color(180, 180, 180));
+        bano.setFont(new Font("SansSerif", Font.BOLD, 12));
+        gbc.gridx = 9; gbc.gridy = 0; gbc.gridwidth = 2; gbc.gridheight = 2;
+        floorPanel.add(bano, gbc);
+
+        JLabel entrada = new JLabel("ENTRADA", SwingConstants.CENTER);
+        entrada.setOpaque(true);
+        entrada.setBackground(new Color(180, 180, 180));
+        entrada.setFont(new Font("SansSerif", Font.ITALIC, 11));
+        gbc.gridx = 4; gbc.gridy = 10; gbc.gridwidth = 3; gbc.gridheight = 1;
+        floorPanel.add(entrada, gbc);
+
+        int[][] mesas_layout = {
+            {0, 2, 2, 2},   // 1
+            {3, 2, 2, 2},   // 2
+            {6, 2, 2, 2},   // 3
+            {0, 5, 2, 2},   // 4
+            {3, 5, 2, 2},   // 5
+            {6, 5, 2, 2},   // 6
+            {0, 7, 1, 1},   // 7
+            {1, 7, 1, 1},   // 8
+            {3, 7, 1, 1},   // 9
+            {4, 7, 1, 1},   // 10
+            {6, 7, 1, 1},   // 11
+            {7, 7, 1, 1},   // 12
+            {0, 8, 1, 1},   // 13
+            {1, 8, 1, 1},   // 14
+            {3, 8, 1, 1},   // 15
+            {4, 8, 1, 1},   // 16
+            {6, 8, 1, 1},   // 17
+            {7, 8, 1, 1},   // 18
+            {6, 9, 1, 1},   // 19
+            {7, 9, 1, 1},   // 20
+        };
 
         for (int i = 0; i < 20; i++) {
             int numMesa = i + 1;
+            boolean ocupada = false;
+            for (int oc : mesasOcupadas) {
+                if (oc == numMesa) { ocupada = true; break; }
+            }
+
+            final boolean esOcupada = ocupada;
             JButton btn = new JButton(String.valueOf(numMesa));
-            btn.setPreferredSize(new Dimension(80, 80));
-            btn.setFont(new Font("SansSerif", Font.BOLD, 18));
+            btn.setFont(new Font("SansSerif", Font.BOLD, 16));
             btn.setFocusPainted(false);
-            btn.setBackground(Color.GREEN);
             btn.setOpaque(true);
+            btn.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+
+            if (ocupada) {
+                btn.setBackground(Color.RED);
+                btn.setEnabled(false);
+            } else {
+                btn.setBackground(Color.GREEN);
+                btn.setEnabled(true);
+            }
+
             final int mesa = numMesa;
-            btn.addActionListener(e -> seleccionarMesa(mesa));
+            btn.addActionListener(e -> seleccionarMesa(mesa, esOcupada));
+
             mesaButtons[i] = btn;
-            mesasPanel.add(btn);
+            gbc.gridx = mesas_layout[i][0];
+            gbc.gridy = mesas_layout[i][1];
+            gbc.gridwidth = mesas_layout[i][2];
+            gbc.gridheight = mesas_layout[i][3];
+            gbc.weightx = 0.5;
+            gbc.weighty = 0.5;
+            floorPanel.add(crearPanelMesa(btn, mesas_layout[i][2], mesas_layout[i][3]), gbc);
         }
 
         JPanel surPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
 
+        JPanel legendPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        legendPanel.add(crearIndicador(Color.GREEN, "Disponible"));
+        legendPanel.add(crearIndicador(COLOR_SELECCION, "Seleccionada"));
+        legendPanel.add(crearIndicador(Color.RED, "Ocupada"));
+
         JButton confirmarBtn = new JButton("Confirmar Reserva");
         confirmarBtn.setFont(confirmarBtn.getFont().deriveFont(Font.BOLD, 14f));
+        confirmarBtn.setPreferredSize(new Dimension(180, 35));
         confirmarBtn.addActionListener(e -> {
             if (mesaSeleccionada == -1) {
                 JOptionPane.showMessageDialog(this, "Selecciona una mesa antes de confirmar.",
@@ -596,30 +675,74 @@ public class LeRefletTrinpheGUI extends JFrame {
         });
 
         JButton volverBtn = new JButton("Volver");
+        volverBtn.setPreferredSize(new Dimension(100, 35));
         volverBtn.addActionListener(e -> cardLayout.show(cards, RESERVA));
 
+        surPanel.add(legendPanel);
         surPanel.add(confirmarBtn);
         surPanel.add(volverBtn);
 
-        JPanel centroPanel = new JPanel(new BorderLayout());
-        centroPanel.add(mesasPanel, BorderLayout.CENTER);
-        panel.add(centroPanel, BorderLayout.CENTER);
+        panel.add(floorPanel, BorderLayout.CENTER);
         panel.add(surPanel, BorderLayout.SOUTH);
 
         return panel;
     }
 
-    private void seleccionarMesa(int numMesa) {
+    private JPanel crearPanelMesa(JButton btn, int w, int h) {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setOpaque(false);
+        int size = (w >= 2 && h >= 2) ? 90 : 60;
+        btn.setPreferredSize(new Dimension(size, size));
+        p.add(btn);
+        return p;
+    }
+
+    private JPanel crearIndicador(Color color, String texto) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        p.setOpaque(false);
+        JLabel dot = new JLabel("  ");
+        dot.setOpaque(true);
+        dot.setBackground(color);
+        dot.setPreferredSize(new Dimension(14, 14));
+        dot.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+        p.add(dot);
+        p.add(new JLabel(texto));
+        return p;
+    }
+
+    private void seleccionarMesa(int numMesa, boolean ocupada) {
+        if (ocupada) {
+            JOptionPane.showMessageDialog(this,
+                    "La mesa " + numMesa + " está ocupada. Elige otra.",
+                    "Mesa ocupada", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         if (mesaSeleccionada != -1) {
-            mesaButtons[mesaSeleccionada - 1].setBackground(Color.GREEN);
+            JButton prev = mesaButtons[mesaSeleccionada - 1];
+            prev.setBackground(Color.GREEN);
+            prev.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
         }
         mesaSeleccionada = numMesa;
-        mesaButtons[numMesa - 1].setBackground(Color.YELLOW);
+        JButton sel = mesaButtons[numMesa - 1];
+        sel.setBackground(COLOR_SELECCION);
+        sel.setBorder(BorderFactory.createLineBorder(new Color(180, 120, 0), 4));
     }
 
     private void actualizarBotonesMesas() {
         for (int i = 0; i < 20; i++) {
-            mesaButtons[i].setBackground(Color.GREEN);
+            boolean ocupada = false;
+            for (int oc : mesasOcupadas) {
+                if (oc == i + 1) { ocupada = true; break; }
+            }
+            JButton btn = mesaButtons[i];
+            if (ocupada) {
+                btn.setBackground(Color.RED);
+                btn.setEnabled(false);
+            } else {
+                btn.setBackground(Color.GREEN);
+                btn.setEnabled(true);
+            }
+            btn.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
         }
         mesaSeleccionada = -1;
     }
