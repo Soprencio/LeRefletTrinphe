@@ -10,7 +10,6 @@ import java.util.ArrayList;
 
 public class LeRefletTrinpheGUI extends JFrame {
 
-    // ----- Navegacion -----
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel cards = new JPanel(cardLayout);
 
@@ -20,11 +19,23 @@ public class LeRefletTrinpheGUI extends JFrame {
     private static final String VERMENU = "VERMENU";
     private static final String RESERVA = "RESERVA";
     private static final String GIFTCARD = "GIFTCARD";
+    private static final String SELECCIONARMESA = "SELECCIONARMESA";
 
     private Usuario usuarioRegistrado = null;
     private Usuario usuarioActual = null;
     private Reserva reservaActual = null;
     private boolean existeReserva = false;
+
+    private String tempTitular;
+    private LocalDateTime tempFecha;
+    private String tempDesc;
+    private ArrayList<String> tempInvitados;
+    private boolean tempCoca;
+    private boolean tempSprite;
+    private boolean tempFernet;
+
+    private JButton[] mesaButtons = new JButton[20];
+    private int mesaSeleccionada = -1;
 
     private final Platillo milanesa = new Platillo("Milanesa", 7000.0, "Mila de Ternera", "Plato Principal");
     private final Platillo spaghetti = new Platillo("Spaghetti", 6300.0, "Spaghetti Bolognesa", "Plato Principal");
@@ -54,14 +65,12 @@ public class LeRefletTrinpheGUI extends JFrame {
         cards.add(crearPanelVerMenu(), VERMENU);
         cards.add(crearPanelReserva(), RESERVA);
         cards.add(crearPanelGiftcard(), GIFTCARD);
+        cards.add(crearPanelSeleccionMesa(), SELECCIONARMESA);
 
         add(cards);
         cardLayout.show(cards, LOGIN);
     }
 
-    // =========================================================
-    //  PANEL: LOGIN
-    // =========================================================
     private JPanel crearPanelLogin() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = baseConstraints();
@@ -117,10 +126,6 @@ public class LeRefletTrinpheGUI extends JFrame {
 
         return panel;
     }
-
-    // =========================================================
-    //  PANEL: REGISTRO
-    // =========================================================
     private JPanel crearPanelRegistro() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = baseConstraints();
@@ -185,9 +190,6 @@ public class LeRefletTrinpheGUI extends JFrame {
         return panel;
     }
 
-    // =========================================================
-    //  PANEL: MENU PRINCIPAL
-    // =========================================================
     private JPanel crearPanelMenu() {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = baseConstraints();
@@ -237,9 +239,6 @@ public class LeRefletTrinpheGUI extends JFrame {
         return panel;
     }
 
-    // =========================================================
-    //  PANEL: VER MENU
-    // =========================================================
     private JPanel crearPanelVerMenu() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -331,12 +330,8 @@ public class LeRefletTrinpheGUI extends JFrame {
         return panel;
     }
 
-    // =========================================================
-    //  PANEL: RESERVAR MESA
-    // =========================================================
     private JTextField titularField;
     private JTextField fechaField;
-    private JTextField mesaField;
     private JTextField descGiftReservaField;
     private JTextField invitadoReservaField;
     private JCheckBox cocaCheck;
@@ -355,7 +350,6 @@ public class LeRefletTrinpheGUI extends JFrame {
 
         titularField = new JTextField(18);
         fechaField = new JTextField(18);
-        mesaField = new JTextField(18);
         descGiftReservaField = new JTextField(18);
 
         gbc.gridy = 1; gbc.gridx = 0; panel.add(new JLabel("Titular de la mesa:"), gbc);
@@ -364,19 +358,16 @@ public class LeRefletTrinpheGUI extends JFrame {
         gbc.gridy = 2; gbc.gridx = 0; panel.add(new JLabel("Fecha (dd/MM/yyyy HH:mm):"), gbc);
         gbc.gridx = 1; panel.add(fechaField, gbc);
 
-        gbc.gridy = 3; gbc.gridx = 0; panel.add(new JLabel("Número de mesa:"), gbc);
-        gbc.gridx = 1; panel.add(mesaField, gbc);
-
-        gbc.gridy = 4; gbc.gridx = 0; panel.add(new JLabel("Descripción GiftCard:"), gbc);
+        gbc.gridy = 3; gbc.gridx = 0; panel.add(new JLabel("Descripción GiftCard:"), gbc);
         gbc.gridx = 1; panel.add(descGiftReservaField, gbc);
 
         // Invitados
-        gbc.gridy = 5; gbc.gridx = 0; panel.add(new JLabel("Mail invitado:"), gbc);
+        gbc.gridy = 4; gbc.gridx = 0; panel.add(new JLabel("Mail invitado:"), gbc);
         invitadoReservaField = new JTextField(14);
         gbc.gridx = 1; panel.add(invitadoReservaField, gbc);
 
         JButton agregarInvitadoBtn = new JButton("Agregar invitado");
-        gbc.gridy = 6; gbc.gridx = 0; gbc.gridwidth = 2;
+        gbc.gridy = 5; gbc.gridx = 0; gbc.gridwidth = 2;
         panel.add(agregarInvitadoBtn, gbc);
         gbc.gridwidth = 1;
 
@@ -384,11 +375,11 @@ public class LeRefletTrinpheGUI extends JFrame {
         JList<String> invitadosList = new JList<>(invitadosReservaModel);
         JScrollPane invitadosScroll = new JScrollPane(invitadosList);
         invitadosScroll.setPreferredSize(new Dimension(300, 70));
-        gbc.gridy = 7; gbc.gridx = 0; gbc.gridwidth = 2;
+        gbc.gridy = 6; gbc.gridx = 0; gbc.gridwidth = 2;
         panel.add(invitadosScroll, gbc);
 
         JButton quitarInvitadoBtn = new JButton("Quitar invitado seleccionado");
-        gbc.gridy = 8;
+        gbc.gridy = 7;
         panel.add(quitarInvitadoBtn, gbc);
 
         agregarInvitadoBtn.addActionListener(e -> {
@@ -409,9 +400,8 @@ public class LeRefletTrinpheGUI extends JFrame {
             }
         });
 
-        // Bebidas
         JLabel bebidasLabel = new JLabel("Bebidas de Bienvenida:");
-        gbc.gridy = 9; gbc.gridx = 0; gbc.gridwidth = 2;
+        gbc.gridy = 8; gbc.gridx = 0; gbc.gridwidth = 2;
         panel.add(bebidasLabel, gbc);
         gbc.gridwidth = 2;
 
@@ -419,35 +409,34 @@ public class LeRefletTrinpheGUI extends JFrame {
         spriteCheck = new JCheckBox(bebidaCheckText(sprite));
         fernetCheck = new JCheckBox(bebidaCheckText(fernet));
 
-        gbc.gridy = 10; gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy = 9; gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(crearPanelBebidaCheck(cocaCheck, "coca.jpg"), gbc);
-        gbc.gridy = 11;
+        gbc.gridy = 10;
         panel.add(crearPanelBebidaCheck(spriteCheck, "sprite.jpg"), gbc);
-        gbc.gridy = 12;
+        gbc.gridy = 11;
         panel.add(crearPanelBebidaCheck(fernetCheck, "fernet.jpg"), gbc);
 
         gbc.fill = GridBagConstraints.NONE;
-        JButton confirmarBtn = new JButton("Confirmar Reserva");
+        JButton continuarBtn = new JButton("Continuar Reserva");
         JButton volverBtn = new JButton("Volver");
 
-        gbc.gridy = 13; gbc.gridwidth = 1; gbc.gridx = 0;
-        panel.add(confirmarBtn, gbc);
+        gbc.gridy = 12; gbc.gridwidth = 1; gbc.gridx = 0;
+        panel.add(continuarBtn, gbc);
         gbc.gridx = 1;
         panel.add(volverBtn, gbc);
 
-        confirmarBtn.addActionListener(e -> confirmarReserva());
+        continuarBtn.addActionListener(e -> continuarReserva());
         volverBtn.addActionListener(e -> cardLayout.show(cards, MENU));
 
         return panel;
     }
 
-    private void confirmarReserva() {
+    private void continuarReserva() {
         String titular = titularField.getText().trim();
         String fechaTexto = fechaField.getText().trim();
-        String mesaTexto = mesaField.getText().trim();
         String desc = descGiftReservaField.getText().trim();
 
-        if (titular.isEmpty() || fechaTexto.isEmpty() || mesaTexto.isEmpty() || desc.isEmpty()) {
+        if (titular.isEmpty() || fechaTexto.isEmpty() || desc.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Completa todos los campos.",
                     "Datos incompletos", JOptionPane.WARNING_MESSAGE);
             return;
@@ -462,45 +451,51 @@ public class LeRefletTrinpheGUI extends JFrame {
             return;
         }
 
-        int numMesa;
-        try {
-            numMesa = Integer.parseInt(mesaTexto);
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "El número de mesa debe ser un número entero.",
-                    "Error de formato", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        tempTitular = titular;
+        tempFecha = fecha;
+        tempDesc = desc;
 
-        ArrayList<String> invitados = new ArrayList<>();
+        tempInvitados = new ArrayList<>();
         for (int i = 0; i < invitadosReservaModel.size(); i++) {
-            invitados.add(invitadosReservaModel.get(i));
+            tempInvitados.add(invitadosReservaModel.get(i));
         }
 
-        reservaActual = new Reserva(titular, fecha, numMesa, desc, invitados);
+        tempCoca = cocaCheck.isSelected();
+        tempSprite = spriteCheck.isSelected();
+        tempFernet = fernetCheck.isSelected();
+
+        mesaSeleccionada = -1;
+        actualizarBotonesMesas();
+        cardLayout.show(cards, SELECCIONARMESA);
+    }
+
+    private void confirmarReserva(int numMesa) {
+        reservaActual = new Reserva(tempTitular, tempFecha, numMesa, tempDesc, tempInvitados);
         reservaActual.UsuarioReserva(usuarioActual);
 
-        if (cocaCheck.isSelected()) {
+        if (tempCoca) {
             reservaActual.AgregarBebidas(coca);
         }
-        if (spriteCheck.isSelected()) {
+        if (tempSprite) {
             reservaActual.AgregarBebidas(sprite);
         }
-        if (fernetCheck.isSelected()) {
+        if (tempFernet) {
             reservaActual.AgregarBebidas(fernet);
         }
 
         existeReserva = true;
 
-        mostrarResumenReserva(titular, fecha, numMesa, desc, invitados,
-                cocaCheck.isSelected(), spriteCheck.isSelected(), fernetCheck.isSelected());
+        ArrayList<String> invitados = new ArrayList<>();
+        for (int i = 0; i < tempInvitados.size(); i++) {
+            invitados.add(tempInvitados.get(i));
+        }
+
+        mostrarResumenReserva(tempTitular, tempFecha, numMesa, tempDesc, invitados,
+                tempCoca, tempSprite, tempFernet);
 
         cardLayout.show(cards, MENU);
     }
 
-    /**
-     * Muestra un resumen de la reserva con formato (HTML dentro del JOptionPane),
-     * en vez de imprimir el toString() crudo del objeto Reserva.
-     */
     private void mostrarResumenReserva(String titular, LocalDateTime fecha, int numMesa,
             String desc, ArrayList<String> invitados, boolean tieneCoca, boolean tieneSprite, boolean tieneFernet) {
 
@@ -553,7 +548,6 @@ public class LeRefletTrinpheGUI extends JFrame {
     private void limpiarPanelReserva() {
         titularField.setText("");
         fechaField.setText("");
-        mesaField.setText("");
         descGiftReservaField.setText("");
         invitadoReservaField.setText("");
         invitadosReservaModel.clear();
@@ -562,9 +556,74 @@ public class LeRefletTrinpheGUI extends JFrame {
         fernetCheck.setSelected(false);
     }
 
-    // =========================================================
-    //  PANEL: ACTUALIZAR GIFTCARD
-    // =========================================================
+    private JPanel crearPanelSeleccionMesa() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JLabel titulo = new JLabel("Selecciona una mesa");
+        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 20f));
+        titulo.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(titulo, BorderLayout.NORTH);
+
+        JPanel mesasPanel = new JPanel(new GridLayout(5, 4, 12, 12));
+        mesasPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        for (int i = 0; i < 20; i++) {
+            int numMesa = i + 1;
+            JButton btn = new JButton(String.valueOf(numMesa));
+            btn.setPreferredSize(new Dimension(80, 80));
+            btn.setFont(new Font("SansSerif", Font.BOLD, 18));
+            btn.setFocusPainted(false);
+            btn.setBackground(Color.GREEN);
+            btn.setOpaque(true);
+            final int mesa = numMesa;
+            btn.addActionListener(e -> seleccionarMesa(mesa));
+            mesaButtons[i] = btn;
+            mesasPanel.add(btn);
+        }
+
+        JPanel surPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+
+        JButton confirmarBtn = new JButton("Confirmar Reserva");
+        confirmarBtn.setFont(confirmarBtn.getFont().deriveFont(Font.BOLD, 14f));
+        confirmarBtn.addActionListener(e -> {
+            if (mesaSeleccionada == -1) {
+                JOptionPane.showMessageDialog(this, "Selecciona una mesa antes de confirmar.",
+                        "Mesa no seleccionada", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            confirmarReserva(mesaSeleccionada);
+        });
+
+        JButton volverBtn = new JButton("Volver");
+        volverBtn.addActionListener(e -> cardLayout.show(cards, RESERVA));
+
+        surPanel.add(confirmarBtn);
+        surPanel.add(volverBtn);
+
+        JPanel centroPanel = new JPanel(new BorderLayout());
+        centroPanel.add(mesasPanel, BorderLayout.CENTER);
+        panel.add(centroPanel, BorderLayout.CENTER);
+        panel.add(surPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private void seleccionarMesa(int numMesa) {
+        if (mesaSeleccionada != -1) {
+            mesaButtons[mesaSeleccionada - 1].setBackground(Color.GREEN);
+        }
+        mesaSeleccionada = numMesa;
+        mesaButtons[numMesa - 1].setBackground(Color.YELLOW);
+    }
+
+    private void actualizarBotonesMesas() {
+        for (int i = 0; i < 20; i++) {
+            mesaButtons[i].setBackground(Color.GREEN);
+        }
+        mesaSeleccionada = -1;
+    }
+
     private JTextField descGiftcardField;
     private JTextField invitadoGiftcardField;
 
@@ -688,9 +747,6 @@ public class LeRefletTrinpheGUI extends JFrame {
                 + "  |  " + bebida.getMarca() + " " + bebida.getLitro() + "ml";
     }
 
-    // =========================================================
-    //  UTILIDADES
-    // =========================================================
     private GridBagConstraints baseConstraints() {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 8, 6, 8);
